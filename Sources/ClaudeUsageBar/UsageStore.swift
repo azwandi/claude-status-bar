@@ -4,6 +4,11 @@ import SwiftUI
 
 @MainActor
 final class UsageStore: ObservableObject {
+    enum RefreshState {
+        case enabled
+        case disabled
+    }
+
     @Published private(set) var sessionPercent = 0
     @Published private(set) var sessionPercentRemaining = 0
     @Published private(set) var sessionResetText: String?
@@ -15,22 +20,31 @@ final class UsageStore: ObservableObject {
     @Published private(set) var lastErrorMessage: String?
     @Published private(set) var lastUpdatedText = "Never"
     @Published private(set) var isReloading = false
+    @Published private(set) var refreshState: RefreshState = .enabled
 
     let probeDirectoryPath: String
 
     var menuBarTitle: String {
-        "\(sessionPercent) - \(weeklyPercent)"
+        switch refreshState {
+        case .enabled:
+            "\(sessionPercent) - \(weeklyPercent)"
+        case .disabled:
+            "Claude"
+        }
     }
 
     private let provider: ClaudeUsageProvider
     private var refreshTask: Task<Void, Never>?
+    private var activeUntil: Date?
+
+    private static let refreshInterval: Duration = .seconds(240)
+    private static let activeWindow: Duration = .seconds(3600)
 
     init(provider: ClaudeUsageProvider) {
         self.provider = provider
         self.probeDirectoryPath = provider.effectiveWorkingDirectoryURL.path
 
-        reload()
-        startRefreshTask()
+        enableRefreshing(triggerImmediateReload: true)
     }
 
     deinit {
@@ -79,17 +93,66 @@ final class UsageStore: ObservableObject {
         NSWorkspace.shared.activateFileViewerSelecting([provider.effectiveWorkingDirectoryURL])
     }
 
+    func handleMenuOpened() {
+        guard refreshState == .disabled else {
+            return
+        }
+
+        enableRefreshing(triggerImmediateReload: true)
+    }
+
+    func disable() {
+        disableRefreshing()
+    }
+
+    private func enableRefreshing(triggerImmediateReload: Bool) {
+        refreshState = .enabled
+        activeUntil = Date().addingTimeInterval(Self.activeWindow.timeInterval)
+
+        refreshTask?.cancel()
+
+        if triggerImmediateReload {
+            reload()
+        }
+
+        startRefreshTask()
+    }
+
+    private func disableRefreshing() {
+        refreshState = .disabled
+        activeUntil = nil
+        refreshTask?.cancel()
+        refreshTask = nil
+    }
+
     private func startRefreshTask() {
         refreshTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(60))
+                guard let self else {
+                    break
+                }
+
+                guard await MainActor.run(body: { self.activeUntil != nil }) else {
+                    break
+                }
+
+                try? await Task.sleep(for: Self.refreshInterval)
 
                 guard !Task.isCancelled else {
                     break
                 }
 
                 await MainActor.run {
-                    self?.reload()
+                    guard let activeUntil = self.activeUntil else {
+                        return
+                    }
+
+                    if Date() >= activeUntil {
+                        self.disableRefreshing()
+                        return
+                    }
+
+                    self.reload()
                 }
             }
         }
@@ -101,4 +164,10 @@ final class UsageStore: ObservableObject {
         formatter.timeStyle = .short
         return formatter
     }()
+}
+
+private extension Duration {
+    var timeInterval: TimeInterval {
+        TimeInterval(components.seconds) + (TimeInterval(components.attoseconds) / 1_000_000_000_000_000_000)
+    }
 }

@@ -233,18 +233,28 @@ struct ClaudeUsageProvider: Sendable {
 
     private func extractAccountLabel(from text: String) -> String? {
         for line in text.components(separatedBy: .newlines) {
-            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard trimmed.contains("·") else {
+            let cleaned = cleanAccountLabel(line)
+            guard cleaned.contains("·") else {
                 continue
             }
 
-            let lower = trimmed.lowercased()
+            let lower = cleaned.lowercased()
             if lower.contains("claude max") || lower.contains("claude pro") || lower.contains("api usage billing") {
-                return trimmed
+                return cleaned
             }
         }
 
         return nil
+    }
+
+    private func cleanAccountLabel(_ line: String) -> String {
+        let borderScalars = Set("|¦│┃┆┊╎╏".unicodeScalars)
+        let cleanedScalars = line.unicodeScalars.filter { scalar in
+            !borderScalars.contains(scalar)
+        }
+
+        return String(String.UnicodeScalarView(cleanedScalars))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func extractUsageError(from text: String) -> ClaudeUsageError? {

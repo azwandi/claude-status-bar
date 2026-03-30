@@ -16,14 +16,15 @@ The second number is current week used percentage.
 
 - Native SwiftUI macOS menu bar app
 - CLI-only integration with Claude Code
-- Menu bar title shows `session - week`
+- Menu bar title shows `session - week` with red/amber/green usage colors
 - Dropdown shows:
-  - current session used and remaining
-  - current week used and remaining
-  - reset timing for session and week
   - weekly model-specific sections when Claude exposes them
   - account/header line from Claude usage output
-- Auto-refresh every 60 seconds
+- Immediate usage check on launch
+- Active mode polls every 4 minutes for 60 minutes
+- Disabled mode collapses the menu bar title to `Claude`
+- Opening the menu while disabled re-enables polling and refreshes immediately
+- Manual `Disable` button in the dropdown
 - Automatically targets your latest real Claude workspace when possible instead of a dummy probe folder
 - Falls back to a dedicated probe folder when no recent Claude session is available
 
@@ -90,12 +91,12 @@ This creates:
 ## Create a `.dmg`
 
 ```bash
-VERSION=v0.1.0 ./scripts/create-dmg.sh
+VERSION=v0.1.1 ./scripts/create-dmg.sh
 ```
 
 This creates:
 
-`dist/ClaudeUsageBar-v0.1.0.dmg`
+`dist/ClaudeUsageBar-v0.1.1.dmg`
 
 ## Test
 
@@ -113,23 +114,13 @@ Where:
 
 - `X` = current session used percentage
 - `Y` = current week used percentage
+- `X` and `Y` are color-coded as green, amber, or red based on usage percentage
 
 The `%` symbol is intentionally omitted to keep the menu bar compact.
 
 ## Dropdown Details
 
-The dropdown shows a summary card plus a breakdown section.
-
-Summary card:
-
-- session used
-- weekly used
-- session remaining
-- session progress bar
-- session reset
-- week reset
-
-Breakdown section:
+The dropdown shows:
 
 - Current session
 - Current week (all models)
@@ -141,6 +132,12 @@ Each breakdown card shows:
 - used percentage
 - remaining percentage
 - reset text when available
+
+Footer actions:
+
+- `Reload` refreshes immediately when enabled, or re-enables polling when disabled
+- `Disable` immediately switches the app into the disabled `Claude` state
+- `Reveal Probe` opens the working directory used for the Claude CLI probe
 
 ## Working Directory Behavior
 
@@ -196,3 +193,5 @@ the workflow will:
 - build the macOS app bundle
 - package it as a `.dmg`
 - upload the `.dmg` to the matching GitHub release
+
+Make sure the matching GitHub release exists for that tag before or shortly after the workflow runs.

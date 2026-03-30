@@ -12,63 +12,6 @@ struct MenuContentView: View {
                     .lineLimit(2)
             }
 
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .firstTextBaseline) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Claude Session")
-                            .font(.headline)
-                        Text("Live usage from `/usage`")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Spacer()
-
-                    Text(usageStore.menuBarTitle)
-                        .font(.title2.weight(.bold))
-                        .monospacedDigit()
-                        .foregroundStyle(.primary)
-                }
-
-                UsageProgressBar(
-                    percentUsed: usageStore.sessionPercent,
-                    tint: usageTint(for: usageStore.sessionPercent)
-                )
-
-                HStack {
-                    summaryPill(title: "Session", value: "\(usageStore.sessionPercent)")
-                    summaryPill(title: "Week", value: "\(usageStore.weeklyPercent)")
-                    summaryPill(title: "Left", value: "\(usageStore.sessionPercentRemaining)")
-                }
-            }
-            .padding(12)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color(nsColor: .controlBackgroundColor))
-            )
-
-            if let resetText = usageStore.sessionResetText {
-                HStack {
-                    Text("Session reset")
-                    Spacer()
-                    Text(resetText)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.trailing)
-                }
-            }
-
-            if let weeklyResetText = usageStore.weeklyResetText {
-                HStack {
-                    Text("Week reset")
-                    Spacer()
-                    Text(weeklyResetText)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.trailing)
-                }
-            }
-
-            Divider()
-
             if !usageStore.metrics.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Usage Breakdown")
@@ -112,7 +55,11 @@ struct MenuContentView: View {
 
             HStack {
                 Button("Reload") {
-                    usageStore.reload()
+                    if usageStore.refreshState == .enabled {
+                        usageStore.reload()
+                    } else {
+                        usageStore.handleMenuOpened()
+                    }
                 }
                 .disabled(usageStore.isReloading)
 
@@ -122,6 +69,12 @@ struct MenuContentView: View {
 
                 Spacer()
 
+                if usageStore.refreshState == .enabled {
+                    Button("Disable") {
+                        usageStore.disable()
+                    }
+                }
+
                 Button("Quit") {
                     NSApplication.shared.terminate(nil)
                 }
@@ -129,6 +82,9 @@ struct MenuContentView: View {
         }
         .padding(14)
         .frame(width: 340)
+        .onAppear {
+            usageStore.handleMenuOpened()
+        }
     }
 
     @ViewBuilder
@@ -173,31 +129,12 @@ struct MenuContentView: View {
         )
     }
 
-    @ViewBuilder
-    private func summaryPill(title: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(.subheadline.weight(.semibold))
-                .monospacedDigit()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.black.opacity(0.04))
-        )
-    }
-
     private func usageTint(for percentUsed: Int) -> Color {
         switch percentUsed {
         case 0..<50:
             return Color(red: 0.16, green: 0.54, blue: 0.34)
         case 50..<80:
-            return Color(red: 0.80, green: 0.52, blue: 0.10)
+            return Color(red: 0.95, green: 0.60, blue: 0.05)
         default:
             return Color(red: 0.78, green: 0.23, blue: 0.18)
         }

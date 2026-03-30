@@ -80,6 +80,22 @@ struct ClaudeUsageProviderTests {
     }
 
     @Test
+    func trimsBorderCharactersFromAccountLabel() throws {
+        let provider = ClaudeUsageProvider()
+
+        let snapshot = try provider.parse(
+            """
+            │ Sonnet 4.6 · Claude Pro · azwandi@gmail.com's │
+
+            Current session
+            ████████████████████ 100% left
+            """
+        )
+
+        #expect(snapshot.accountLabel == "Sonnet 4.6 · Claude Pro · azwandi@gmail.com's")
+    }
+
+    @Test
     func detectsTrustPrompt() {
         let provider = ClaudeUsageProvider()
 
