@@ -77,6 +77,26 @@ swift run ClaudeUsageBar
 swift build
 ```
 
+## Build a `.app`
+
+```bash
+./scripts/build-app.sh
+```
+
+This creates:
+
+`dist/ClaudeUsageBar.app`
+
+## Create a `.dmg`
+
+```bash
+VERSION=v0.1.0 ./scripts/create-dmg.sh
+```
+
+This creates:
+
+`dist/ClaudeUsageBar-v0.1.0.dmg`
+
 ## Test
 
 ```bash
@@ -153,7 +173,26 @@ You can reveal the currently used directory from the dropdown via `Reveal Probe`
 ## Future Improvements
 
 - Launch at login
-- Packaged `.app` bundle and app icon polish
+- App icon polish and signing/notarization
 - Optional toggle for `used` vs `remaining`
 - Optional menu bar mode presets such as `session only`, `week only`, or `session - week - opus`
 - Better active-session selection when multiple Claude workspaces are open
+
+## Release Automation
+
+This repo includes a GitHub Actions workflow at:
+
+`/.github/workflows/release-dmg.yml`
+
+When you push a tag like:
+
+```bash
+git tag v0.1.1
+git push origin v0.1.1
+```
+
+the workflow will:
+
+- build the macOS app bundle
+- package it as a `.dmg`
+- upload the `.dmg` to the matching GitHub release
