@@ -68,37 +68,36 @@ struct MenuContentView: View {
 
             Divider()
 
-            VStack(spacing: 8) {
-                HStack(spacing: 8) {
-                    actionButton(usageStore.refreshState == .enabled ? "Reload" : "Enable") {
-                        if usageStore.refreshState == .enabled {
-                            usageStore.reload()
-                        } else {
-                            usageStore.handleMenuOpened()
-                        }
-                    }
-                    .disabled(usageStore.isReloading)
-
-                    actionButton(usageStore.isCheckingForUpdates ? "Checking..." : "Check Updates") {
-                        usageStore.checkForUpdates()
-                    }
-                    .disabled(usageStore.isCheckingForUpdates)
-
+            VStack(alignment: .leading, spacing: 0) {
+                menuActionItem(
+                    usageStore.refreshState == .enabled ? "Reload" : "Enable",
+                    isDisabled: usageStore.isReloading
+                ) {
                     if usageStore.refreshState == .enabled {
-                        actionButton("Disable") {
-                            usageStore.disable()
-                        }
+                        usageStore.reload()
+                    } else {
+                        usageStore.handleMenuOpened()
                     }
                 }
 
-                HStack(spacing: 8) {
-                    actionButton("Reveal Probe") {
-                        usageStore.revealProbeDirectory()
-                    }
+                menuActionItem(
+                    usageStore.isCheckingForUpdates ? "Checking for Updates..." : "Check for Updates",
+                    isDisabled: usageStore.isCheckingForUpdates
+                ) {
+                    usageStore.checkForUpdates()
+                }
 
-                    actionButton("Quit") {
-                        NSApplication.shared.terminate(nil)
+                if usageStore.refreshState == .enabled {
+                    menuActionItem("Disable") {
+                        usageStore.disable()
                     }
+                }
+
+                Divider()
+                    .padding(.vertical, 4)
+
+                menuActionItem("Quit") {
+                    NSApplication.shared.terminate(nil)
                 }
             }
         }
@@ -151,9 +150,8 @@ struct MenuContentView: View {
         )
     }
 
-    private func actionButton(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(title, action: action)
-            .frame(maxWidth: .infinity)
+    private func menuActionItem(_ title: String, isDisabled: Bool = false, action: @escaping () -> Void) -> some View {
+        MenuActionRow(title: title, isDisabled: isDisabled, action: action)
     }
 
     private func usageTint(for percentUsed: Int) -> Color {
@@ -165,6 +163,59 @@ struct MenuContentView: View {
         default:
             return Color(red: 0.78, green: 0.23, blue: 0.18)
         }
+    }
+}
+
+private struct MenuActionRow: View {
+    let title: String
+    let isDisabled: Bool
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(foregroundColor)
+            Spacer()
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(backgroundColor)
+        )
+        .contentShape(Rectangle())
+        .opacity(isDisabled ? 0.6 : 1)
+        .onHover { hovering in
+            guard !isDisabled else {
+                isHovered = false
+                return
+            }
+            isHovered = hovering
+        }
+        .onTapGesture {
+            guard !isDisabled else {
+                return
+            }
+            action()
+        }
+        .accessibilityAddTraits(.isButton)
+        .accessibilityLabel(title)
+    }
+
+    private var foregroundColor: Color {
+        if isDisabled {
+            return .secondary
+        }
+        return isHovered ? Color(nsColor: .alternateSelectedControlTextColor) : .primary
+    }
+
+    private var backgroundColor: Color {
+        guard isHovered, !isDisabled else {
+            return .clear
+        }
+        return Color(nsColor: .selectedContentBackgroundColor)
     }
 }
 
