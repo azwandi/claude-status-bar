@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_NAME="CodexStatusBar"
+APP_NAME="ClaudeUsageBar"
 BUILD_CONFIG="${BUILD_CONFIG:-release}"
-APP_VERSION="${APP_VERSION:-0.2.0}"
+APP_VERSION="${APP_VERSION:-0.1.5}"
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DIST_DIR="${DIST_DIR:-$ROOT_DIR/dist}"
 BUILD_DIR="$ROOT_DIR/.build"
@@ -45,13 +45,13 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
   <key>CFBundleDevelopmentRegion</key>
   <string>en</string>
   <key>CFBundleExecutable</key>
-  <string>CodexStatusBar</string>
+  <string>ClaudeUsageBar</string>
   <key>CFBundleIdentifier</key>
-  <string>com.azwandi.codex-status-bar</string>
+  <string>com.azwandi.claude-status-bar</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundleName</key>
-  <string>CodexStatusBar</string>
+  <string>ClaudeUsageBar</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>

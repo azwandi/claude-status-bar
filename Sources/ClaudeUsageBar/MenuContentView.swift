@@ -28,10 +28,10 @@ struct MenuContentView: View {
             }
 
             VStack(alignment: .leading, spacing: 6) {
-                Text("Codex sessions directory")
+                Text("Claude probe directory")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                Text(usageStore.sessionsDirectoryPath)
+                Text(usageStore.probeDirectoryPath)
                     .font(.caption)
                     .textSelection(.enabled)
                     .lineLimit(2)
@@ -109,7 +109,7 @@ struct MenuContentView: View {
     }
 
     @ViewBuilder
-    private func metricCard(_ metric: CodexUsageMetric) -> some View {
+    private func metricCard(_ metric: ClaudeUsageMetric) -> some View {
         let tint = usageTint(for: metric.percentUsed)
 
         VStack(alignment: .leading, spacing: 8) {

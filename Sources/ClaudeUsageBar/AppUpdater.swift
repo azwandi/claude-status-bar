@@ -11,7 +11,7 @@ struct AppUpdater: Sendable {
     let owner: String
     let repository: String
 
-    init(owner: String = "azwandi", repository: String = "codex-status-bar") {
+    init(owner: String = "azwandi", repository: String = "claude-status-bar") {
         self.owner = owner
         self.repository = repository
     }
@@ -41,7 +41,7 @@ struct AppUpdater: Sendable {
         let url = URL(string: "https://api.github.com/repos/\(owner)/\(repository)/releases")!
         var request = URLRequest(url: url)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        request.setValue("CodexStatusBar", forHTTPHeaderField: "User-Agent")
+        request.setValue("ClaudeUsageBar", forHTTPHeaderField: "User-Agent")
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -80,7 +80,7 @@ struct AppUpdater: Sendable {
 
     private func downloadAndInstall(asset: ReleaseAsset, targetAppURL: URL) async throws {
         let temporaryDirectory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("CodexStatusBarUpdate-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("ClaudeUsageBarUpdate-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: true)
 
         let downloadedDMGURL = try await download(asset: asset, into: temporaryDirectory)
@@ -101,7 +101,7 @@ struct AppUpdater: Sendable {
                 throw UpdaterError.missingAppInDiskImage
             }
 
-            stagedAppURL = temporaryDirectory.appendingPathComponent("CodexStatusBar.app", isDirectory: true)
+            stagedAppURL = temporaryDirectory.appendingPathComponent("ClaudeUsageBar.app", isDirectory: true)
             try FileManager.default.copyItem(at: mountedAppURL, to: stagedAppURL)
         } catch {
             try? runProcess("/usr/bin/hdiutil", arguments: ["detach", mountURL.path, "-quiet"])
@@ -139,7 +139,7 @@ struct AppUpdater: Sendable {
 
     private func download(asset: ReleaseAsset, into directory: URL) async throws -> URL {
         var request = URLRequest(url: asset.browserDownloadURL)
-        request.setValue("CodexStatusBar", forHTTPHeaderField: "User-Agent")
+        request.setValue("ClaudeUsageBar", forHTTPHeaderField: "User-Agent")
 
         let (temporaryURL, response) = try await URLSession.shared.download(for: request)
         guard let httpResponse = response as? HTTPURLResponse, 200..<300 ~= httpResponse.statusCode else {

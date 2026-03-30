@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct CodexStatusBarApp: App {
+struct ClaudeUsageBarApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {

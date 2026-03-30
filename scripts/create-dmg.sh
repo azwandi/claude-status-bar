@@ -3,8 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DIST_DIR="${DIST_DIR:-$ROOT_DIR/dist}"
-APP_NAME="CodexStatusBar"
-VERSION="${VERSION:-v0.2.0}"
+APP_NAME="ClaudeUsageBar"
+VERSION="${VERSION:-0.1.0}"
 APP_PATH="$DIST_DIR/$APP_NAME.app"
 DMG_PATH="$DIST_DIR/$APP_NAME-$VERSION.dmg"
 

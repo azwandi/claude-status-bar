@@ -39,9 +39,9 @@ struct InteractiveRunner: Sendable {
             case let .binaryNotFound(binary):
                 return "Could not find \(binary) on PATH."
             case let .launchFailed(reason):
-                return "Failed to start the CLI process: \(reason)"
+                return "Failed to start Claude CLI: \(reason)"
             case .timedOut:
-                return "The CLI process did not finish before the timeout."
+                return "Claude CLI did not finish before the timeout."
             }
         }
     }
