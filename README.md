@@ -92,12 +92,12 @@ This creates:
 ## Create a `.dmg`
 
 ```bash
-VERSION=v0.1.2 ./scripts/create-dmg.sh
+VERSION=v0.1.3 ./scripts/create-dmg.sh
 ```
 
 This creates:
 
-`dist/ClaudeUsageBar-v0.1.2.dmg`
+`dist/ClaudeUsageBar-v0.1.3.dmg`
 
 ## Test
 
@@ -188,8 +188,8 @@ This repo includes a GitHub Actions workflow at:
 When you push a tag like:
 
 ```bash
-git tag v0.1.2
-git push origin v0.1.2
+git tag v0.1.3
+git push origin v0.1.3
 ```
 
 the workflow will:

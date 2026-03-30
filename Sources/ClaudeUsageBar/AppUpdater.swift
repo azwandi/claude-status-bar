@@ -38,7 +38,7 @@ struct AppUpdater: Sendable {
     }
 
     private func fetchLatestRelease() async throws -> Release {
-        let url = URL(string: "https://api.github.com/repos/\(owner)/\(repository)/releases/latest")!
+        let url = URL(string: "https://api.github.com/repos/\(owner)/\(repository)/releases")!
         var request = URLRequest(url: url)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue("ClaudeUsageBar", forHTTPHeaderField: "User-Agent")
@@ -50,7 +50,11 @@ struct AppUpdater: Sendable {
         }
 
         do {
-            return try JSONDecoder().decode(Release.self, from: data)
+            let releases = try JSONDecoder().decode([Release].self, from: data)
+            guard let release = releases.first(where: { !$0.isDraft && !$0.isPrerelease }) else {
+                throw UpdaterError.releaseLookupFailed
+            }
+            return release
         } catch {
             throw UpdaterError.releaseLookupFailed
         }
@@ -193,11 +197,15 @@ struct AppUpdater: Sendable {
 private struct Release: Decodable, Sendable {
     let tagName: String
     let htmlURL: URL
+    let isDraft: Bool
+    let isPrerelease: Bool
     let assets: [ReleaseAsset]
 
     enum CodingKeys: String, CodingKey {
         case tagName = "tag_name"
         case htmlURL = "html_url"
+        case isDraft = "draft"
+        case isPrerelease = "prerelease"
         case assets
     }
 }
