@@ -20,6 +20,8 @@ final class UsageStore: ObservableObject {
     @Published private(set) var lastErrorMessage: String?
     @Published private(set) var lastUpdatedText = "Never"
     @Published private(set) var isReloading = false
+    @Published private(set) var isCheckingForUpdates = false
+    @Published private(set) var updateStatusMessage: String?
     @Published private(set) var refreshState: RefreshState = .enabled
 
     let probeDirectoryPath: String
@@ -34,14 +36,16 @@ final class UsageStore: ObservableObject {
     }
 
     private let provider: ClaudeUsageProvider
+    private let updater: AppUpdater
     private var refreshTask: Task<Void, Never>?
     private var activeUntil: Date?
 
     private static let refreshInterval: Duration = .seconds(240)
     private static let activeWindow: Duration = .seconds(3600)
 
-    init(provider: ClaudeUsageProvider) {
+    init(provider: ClaudeUsageProvider, updater: AppUpdater = AppUpdater()) {
         self.provider = provider
+        self.updater = updater
         self.probeDirectoryPath = provider.effectiveWorkingDirectoryURL.path
 
         enableRefreshing(triggerImmediateReload: true)
@@ -103,6 +107,37 @@ final class UsageStore: ObservableObject {
 
     func disable() {
         disableRefreshing()
+    }
+
+    func checkForUpdates() {
+        guard !isCheckingForUpdates else {
+            return
+        }
+
+        isCheckingForUpdates = true
+        updateStatusMessage = "Checking for updates..."
+
+        Task { [updater] in
+            do {
+                let result = try await updater.checkForUpdatesAndInstallIfNeeded()
+                await MainActor.run {
+                    switch result {
+                    case .upToDate(let currentVersion):
+                        self.updateStatusMessage = "You're up to date (\(currentVersion))."
+                    case .installing(let version):
+                        self.updateStatusMessage = "Installing v\(version)..."
+                    case .openedReleasePage(let version):
+                        self.updateStatusMessage = "Opened GitHub release v\(version). Install it manually from there."
+                    }
+                    self.isCheckingForUpdates = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.updateStatusMessage = error.localizedDescription
+                    self.isCheckingForUpdates = false
+                }
+            }
+        }
     }
 
     private func enableRefreshing(triggerImmediateReload: Bool) {

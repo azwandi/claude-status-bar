@@ -25,6 +25,7 @@ The second number is current week used percentage.
 - Disabled mode collapses the menu bar title to `Claude`
 - Opening the menu while disabled re-enables polling and refreshes immediately
 - Manual `Disable` button in the dropdown
+- Manual `Check for Updates` action that checks GitHub releases and installs the latest app bundle when possible
 - Automatically targets your latest real Claude workspace when possible instead of a dummy probe folder
 - Falls back to a dedicated probe folder when no recent Claude session is available
 
@@ -91,12 +92,12 @@ This creates:
 ## Create a `.dmg`
 
 ```bash
-VERSION=v0.1.1 ./scripts/create-dmg.sh
+VERSION=v0.1.2 ./scripts/create-dmg.sh
 ```
 
 This creates:
 
-`dist/ClaudeUsageBar-v0.1.1.dmg`
+`dist/ClaudeUsageBar-v0.1.2.dmg`
 
 ## Test
 
@@ -136,8 +137,11 @@ Each breakdown card shows:
 Footer actions:
 
 - `Reload` refreshes immediately when enabled, or re-enables polling when disabled
+- `Check for Updates` looks for the latest GitHub release and installs it automatically when the app is running from a `.app` bundle
 - `Disable` immediately switches the app into the disabled `Claude` state
 - `Reveal Probe` opens the working directory used for the Claude CLI probe
+
+If the app is not running from an installed `.app` bundle, update checks fall back to opening the GitHub release page for manual installation.
 
 ## Working Directory Behavior
 
@@ -184,8 +188,8 @@ This repo includes a GitHub Actions workflow at:
 When you push a tag like:
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
 the workflow will:

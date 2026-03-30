@@ -51,6 +51,12 @@ struct MenuContentView: View {
                     .foregroundStyle(.red)
             }
 
+            if let updateStatusMessage = usageStore.updateStatusMessage {
+                Text(updateStatusMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Divider()
 
             HStack {
@@ -68,6 +74,11 @@ struct MenuContentView: View {
                 }
 
                 Spacer()
+
+                Button(usageStore.isCheckingForUpdates ? "Checking..." : "Check for Updates") {
+                    usageStore.checkForUpdates()
+                }
+                .disabled(usageStore.isCheckingForUpdates)
 
                 if usageStore.refreshState == .enabled {
                     Button("Disable") {
