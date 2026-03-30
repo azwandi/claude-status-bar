@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuContentView: View {
     @ObservedObject var usageStore: UsageStore
+    private let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -45,6 +46,14 @@ struct MenuContentView: View {
             }
             .font(.caption)
 
+            HStack {
+                Text("Version")
+                Spacer()
+                Text("v\(appVersion)")
+                    .foregroundStyle(.secondary)
+            }
+            .font(.caption)
+
             if let errorMessage = usageStore.lastErrorMessage {
                 Text(errorMessage)
                     .font(.caption)
@@ -59,35 +68,37 @@ struct MenuContentView: View {
 
             Divider()
 
-            HStack {
-                Button("Reload") {
+            VStack(spacing: 8) {
+                HStack(spacing: 8) {
+                    actionButton(usageStore.refreshState == .enabled ? "Reload" : "Enable") {
+                        if usageStore.refreshState == .enabled {
+                            usageStore.reload()
+                        } else {
+                            usageStore.handleMenuOpened()
+                        }
+                    }
+                    .disabled(usageStore.isReloading)
+
+                    actionButton(usageStore.isCheckingForUpdates ? "Checking..." : "Check Updates") {
+                        usageStore.checkForUpdates()
+                    }
+                    .disabled(usageStore.isCheckingForUpdates)
+
                     if usageStore.refreshState == .enabled {
-                        usageStore.reload()
-                    } else {
-                        usageStore.handleMenuOpened()
-                    }
-                }
-                .disabled(usageStore.isReloading)
-
-                Button("Reveal Probe") {
-                    usageStore.revealProbeDirectory()
-                }
-
-                Spacer()
-
-                Button(usageStore.isCheckingForUpdates ? "Checking..." : "Check for Updates") {
-                    usageStore.checkForUpdates()
-                }
-                .disabled(usageStore.isCheckingForUpdates)
-
-                if usageStore.refreshState == .enabled {
-                    Button("Disable") {
-                        usageStore.disable()
+                        actionButton("Disable") {
+                            usageStore.disable()
+                        }
                     }
                 }
 
-                Button("Quit") {
-                    NSApplication.shared.terminate(nil)
+                HStack(spacing: 8) {
+                    actionButton("Reveal Probe") {
+                        usageStore.revealProbeDirectory()
+                    }
+
+                    actionButton("Quit") {
+                        NSApplication.shared.terminate(nil)
+                    }
                 }
             }
         }
@@ -138,6 +149,11 @@ struct MenuContentView: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color(nsColor: .controlBackgroundColor).opacity(0.7))
         )
+    }
+
+    private func actionButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(title, action: action)
+            .frame(maxWidth: .infinity)
     }
 
     private func usageTint(for percentUsed: Int) -> Color {

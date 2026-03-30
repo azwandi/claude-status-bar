@@ -3,7 +3,7 @@ set -euo pipefail
 
 APP_NAME="ClaudeUsageBar"
 BUILD_CONFIG="${BUILD_CONFIG:-release}"
-APP_VERSION="${APP_VERSION:-0.1.3}"
+APP_VERSION="${APP_VERSION:-0.1.4}"
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DIST_DIR="${DIST_DIR:-$ROOT_DIR/dist}"
 BUILD_DIR="$ROOT_DIR/.build"
