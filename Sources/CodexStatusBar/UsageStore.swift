@@ -9,14 +9,14 @@ final class UsageStore: ObservableObject {
         case disabled
     }
 
-    @Published private(set) var sessionPercent = 0
-    @Published private(set) var sessionPercentRemaining = 0
-    @Published private(set) var sessionResetText: String?
-    @Published private(set) var weeklyPercent = 0
-    @Published private(set) var weeklyPercentRemaining = 0
-    @Published private(set) var weeklyResetText: String?
+    @Published private(set) var primaryPercent = 0
+    @Published private(set) var primaryPercentRemaining = 0
+    @Published private(set) var primaryResetText: String?
+    @Published private(set) var secondaryPercent = 0
+    @Published private(set) var secondaryPercentRemaining = 0
+    @Published private(set) var secondaryResetText: String?
     @Published private(set) var accountLabel: String?
-    @Published private(set) var metrics: [ClaudeUsageMetric] = []
+    @Published private(set) var metrics: [CodexUsageMetric] = []
     @Published private(set) var lastErrorMessage: String?
     @Published private(set) var lastUpdatedText = "Never"
     @Published private(set) var isReloading = false
@@ -24,18 +24,18 @@ final class UsageStore: ObservableObject {
     @Published private(set) var updateStatusMessage: String?
     @Published private(set) var refreshState: RefreshState = .enabled
 
-    let probeDirectoryPath: String
+    let sessionsDirectoryPath: String
 
     var menuBarTitle: String {
         switch refreshState {
         case .enabled:
-            "\(sessionPercent) - \(weeklyPercent)"
+            "\(primaryPercent) - \(secondaryPercent)"
         case .disabled:
-            "Claude"
+            "Codex"
         }
     }
 
-    private let provider: ClaudeUsageProvider
+    private let provider: CodexUsageProvider
     private let updater: AppUpdater
     private var refreshTask: Task<Void, Never>?
     private var activeUntil: Date?
@@ -43,10 +43,10 @@ final class UsageStore: ObservableObject {
     private static let refreshInterval: Duration = .seconds(240)
     private static let activeWindow: Duration = .seconds(3600)
 
-    init(provider: ClaudeUsageProvider, updater: AppUpdater = AppUpdater()) {
+    init(provider: CodexUsageProvider, updater: AppUpdater = AppUpdater()) {
         self.provider = provider
         self.updater = updater
-        self.probeDirectoryPath = provider.effectiveWorkingDirectoryURL.path
+        self.sessionsDirectoryPath = provider.sessionsDirectoryURL.path
 
         enableRefreshing(triggerImmediateReload: true)
     }
@@ -66,12 +66,12 @@ final class UsageStore: ObservableObject {
             do {
                 let snapshot = try provider.load()
                 await MainActor.run {
-                    self.sessionPercent = snapshot.sessionPercentUsed
-                    self.sessionPercentRemaining = snapshot.sessionPercentRemaining
-                    self.sessionResetText = snapshot.sessionResetText
-                    self.weeklyPercent = snapshot.weeklyPercentUsed ?? 0
-                    self.weeklyPercentRemaining = snapshot.weeklyPercentRemaining ?? 0
-                    self.weeklyResetText = snapshot.weeklyResetText
+                    self.primaryPercent = snapshot.primaryPercentUsed
+                    self.primaryPercentRemaining = snapshot.primaryPercentRemaining
+                    self.primaryResetText = snapshot.primaryResetText
+                    self.secondaryPercent = snapshot.secondaryPercentUsed ?? 0
+                    self.secondaryPercentRemaining = snapshot.secondaryPercentRemaining ?? 0
+                    self.secondaryResetText = snapshot.secondaryResetText
                     self.accountLabel = snapshot.accountLabel
                     self.metrics = snapshot.metrics
                     self.lastUpdatedText = Self.timestampFormatter.string(from: Date())
@@ -81,9 +81,12 @@ final class UsageStore: ObservableObject {
             } catch {
                 await MainActor.run {
                     self.lastErrorMessage = error.localizedDescription
-                    self.weeklyPercent = 0
-                    self.weeklyPercentRemaining = 0
-                    self.weeklyResetText = nil
+                    self.primaryPercent = 0
+                    self.primaryPercentRemaining = 0
+                    self.primaryResetText = nil
+                    self.secondaryPercent = 0
+                    self.secondaryPercentRemaining = 0
+                    self.secondaryResetText = nil
                     self.accountLabel = nil
                     self.metrics = []
                     self.lastUpdatedText = Self.timestampFormatter.string(from: Date())
@@ -93,8 +96,8 @@ final class UsageStore: ObservableObject {
         }
     }
 
-    func revealProbeDirectory() {
-        NSWorkspace.shared.activateFileViewerSelecting([provider.effectiveWorkingDirectoryURL])
+    func revealSessionsDirectory() {
+        NSWorkspace.shared.activateFileViewerSelecting([provider.sessionsDirectoryURL])
     }
 
     func handleMenuOpened() {

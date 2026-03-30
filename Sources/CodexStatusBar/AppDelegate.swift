@@ -4,7 +4,7 @@ import SwiftUI
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private let usageStore = UsageStore(provider: ClaudeUsageProvider())
+    private let usageStore = UsageStore(provider: CodexUsageProvider())
     private let popover = NSPopover()
     private var statusItem: NSStatusItem?
     private var cancellables: Set<AnyCancellable> = []
@@ -59,9 +59,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         if usageStore.refreshState == .enabled {
             let attributedTitle = NSMutableAttributedString(
-                string: "\(usageStore.sessionPercent)",
+                string: "\(usageStore.primaryPercent)",
                 attributes: [
-                    .foregroundColor: usageColor(for: usageStore.sessionPercent),
+                    .foregroundColor: usageColor(for: usageStore.primaryPercent),
                     .font: font,
                 ]
             )
@@ -78,9 +78,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
             attributedTitle.append(
                 NSAttributedString(
-                    string: "\(usageStore.weeklyPercent)",
+                    string: "\(usageStore.secondaryPercent)",
                     attributes: [
-                        .foregroundColor: usageColor(for: usageStore.weeklyPercent),
+                        .foregroundColor: usageColor(for: usageStore.secondaryPercent),
                         .font: font,
                     ]
                 )
@@ -89,7 +89,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             title = attributedTitle
         } else {
             title = NSAttributedString(
-                string: "Claude",
+                string: "Codex",
                 attributes: [
                     .foregroundColor: NSColor.labelColor,
                     .font: font,

@@ -3,31 +3,31 @@
 import PackageDescription
 
 let package = Package(
-    name: "ClaudeUsageBar",
+    name: "CodexStatusBar",
     platforms: [
         .macOS(.v13),
     ],
     products: [
-        .executable(name: "ClaudeUsageBar", targets: ["ClaudeUsageBar"]),
+        .executable(name: "CodexStatusBar", targets: ["CodexStatusBar"]),
     ],
     dependencies: [
         .package(url: "https://github.com/migueldeicaza/SwiftTerm.git", exact: "1.12.0"),
     ],
     targets: [
         .executableTarget(
-            name: "ClaudeUsageBar",
+            name: "CodexStatusBar",
             dependencies: [
                 "SwiftTerm",
             ],
-            path: "Sources/ClaudeUsageBar"
+            path: "Sources/CodexStatusBar"
         ),
         .testTarget(
-            name: "ClaudeUsageBarTests",
+            name: "CodexStatusBarTests",
             dependencies: [
-                "ClaudeUsageBar",
+                "CodexStatusBar",
                 "SwiftTerm",
             ],
-            path: "Tests/ClaudeUsageBarTests"
+            path: "Tests/CodexStatusBarTests"
         ),
     ],
     swiftLanguageModes: [.v6]
