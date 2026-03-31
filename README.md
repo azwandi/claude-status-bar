@@ -22,7 +22,7 @@ The second number is current week used percentage.
   - account/header line from Claude usage output
 - Immediate usage check on launch
 - Active mode polls every 4 minutes for 60 minutes
-- Disabled mode collapses the menu bar title to `Claude`
+- Disabled mode collapses the menu bar title to `Claude` and follows macOS light/dark appearance
 - Opening the menu while disabled re-enables polling and refreshes immediately
 - Manual `Disable` button in the dropdown
 - Manual `Check for Updates` action that checks GitHub releases and installs the latest app bundle when possible
@@ -92,12 +92,12 @@ This creates:
 ## Create a `.dmg`
 
 ```bash
-VERSION=v0.1.5 ./scripts/create-dmg.sh
+VERSION=v0.1.6 ./scripts/create-dmg.sh
 ```
 
 This creates:
 
-`dist/ClaudeUsageBar-v0.1.5.dmg`
+`dist/ClaudeUsageBar-v0.1.6.dmg`
 
 ## Test
 
@@ -138,7 +138,7 @@ Footer actions:
 
 - `Reload` refreshes immediately when enabled, or re-enables polling when disabled
 - `Check for Updates` looks for the latest GitHub release and installs it automatically when the app is running from a `.app` bundle
-- `Disable` immediately switches the app into the disabled `Claude` state
+- `Disable` immediately switches the app into the disabled `Claude` state with system-appropriate text color
 - `Reveal Probe` opens the working directory used for the Claude CLI probe
 
 If the app is not running from an installed `.app` bundle, update checks fall back to opening the GitHub release page for manual installation.
@@ -188,8 +188,8 @@ This repo includes a GitHub Actions workflow at:
 When you push a tag like:
 
 ```bash
-git tag v0.1.5
-git push origin v0.1.5
+git tag v0.1.6
+git push origin v0.1.6
 ```
 
 the workflow will:

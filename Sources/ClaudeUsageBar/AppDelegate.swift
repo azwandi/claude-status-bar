@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         configurePopover()
         configureStatusItem()
         bindUsageStore()
+        bindAppearanceChanges()
         updateStatusItemTitle()
     }
 
@@ -49,13 +50,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
     }
 
+    private func bindAppearanceChanges() {
+        NSApp.publisher(for: \.effectiveAppearance)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.updateStatusItemTitle()
+            }
+            .store(in: &cancellables)
+    }
+
     private func updateStatusItemTitle() {
         guard let button = statusItem?.button else {
             return
         }
 
         let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .medium)
-        let title: NSAttributedString
 
         if usageStore.refreshState == .enabled {
             let attributedTitle = NSMutableAttributedString(
@@ -86,9 +95,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 )
             )
 
-            title = attributedTitle
+            button.title = ""
+            button.attributedTitle = NSAttributedString(string: "")
+            button.imagePosition = .imageOnly
+            button.image = renderStatusImage(for: attributedTitle, appearance: button.effectiveAppearance)
         } else {
-            title = NSAttributedString(
+            button.image = nil
+            button.imagePosition = .noImage
+            button.title = ""
+            button.attributedTitle = NSAttributedString(
                 string: "Claude",
                 attributes: [
                     .foregroundColor: NSColor.labelColor,
@@ -96,11 +111,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 ]
             )
         }
-
-        button.title = ""
-        button.attributedTitle = NSAttributedString(string: "")
-        button.imagePosition = .imageOnly
-        button.image = renderStatusImage(for: title)
     }
 
     private func usageColor(for percentUsed: Int) -> NSColor {
@@ -114,7 +124,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func renderStatusImage(for title: NSAttributedString) -> NSImage? {
+    private func renderStatusImage(for title: NSAttributedString, appearance: NSAppearance) -> NSImage? {
         let textSize = title.size()
         let imageSize = NSSize(width: ceil(textSize.width), height: NSStatusBar.system.thickness)
         let image = NSImage(size: imageSize)
@@ -123,14 +133,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         image.lockFocus()
         defer { image.unlockFocus() }
 
-        NSColor.clear.set()
-        NSRect(origin: .zero, size: imageSize).fill()
+        appearance.performAsCurrentDrawingAppearance {
+            NSColor.clear.set()
+            NSRect(origin: .zero, size: imageSize).fill()
 
-        let origin = NSPoint(
-            x: 0,
-            y: round((imageSize.height - textSize.height) / 2)
-        )
-        title.draw(at: origin)
+            let origin = NSPoint(
+                x: 0,
+                y: round((imageSize.height - textSize.height) / 2)
+            )
+            title.draw(at: origin)
+        }
 
         return image
     }
